@@ -1,0 +1,5 @@
+-Auch hier müssen die Videos in die einzelnen Frames zerlegt werden, hier ist es aber wichtig, dass die Frames disjunkt sind, sprich kein Apfel ist auf zwei aufeinanderfolgenden Frames zusehen.
+
+-Auch müssen die shifts zur seite entfernt werden, also nur die hoch runter/runter hoch teile aus dem Video sind relevant.
+
+-Visualisierung von TODO im Ordner
