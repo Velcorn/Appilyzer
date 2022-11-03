@@ -1,26 +1,40 @@
+import os
 import cv2
 import numpy as np
+from glob import glob
+
+path = "Videos Train"
 
 
-def vid2frames(path):
-    cap = cv2.VideoCapture(path)
+def video2frames(p: str):
+    # Create folder
+    folder = f'{p.split("/")[0].replace(".MP4", "")}'
+    os.makedirs(folder, exist_ok=True)
+
+    # Open video
+    cap = cv2.VideoCapture(p)
     if not cap.isOpened():
         print("Error opening video file")
 
+    # Save every x-th frame
+    x = 20
     count = 0
     while cap.isOpened():
-        ret, frame = cap.read()
-        if ret:
-            train_name = './test/' + 'test' + str(count).zfill(12) + '.jpg'
-            print('Creating...' + str(count))
-            cv2.imwrite(train_name, frame)
+        success, frame = cap.read()
+        if success:
+            if count % x == 0:
+                print(f"Frame {count} extracted")
+                name = f'{folder}/{str(count).zfill(6)}.jpg'
+                cv2.imwrite(name, frame)
             count += 1
+        else:
+            cap.release()
 
 
-def clean_text(chunk):
+def clean_text(chunk: str):
     frame_ann = {}
-    frameID, _, _, _, metadata = np.asarray(chunk.split("\n"))
-    iso, shutter, fnum, _, _, _, focal_len, latitude, longitude, altitude = np.asarray(metadata.split("] ["))
+    frameID, _, _, _, metadata = np.asarray(chunk.split('\n'))
+    iso, shutter, fnum, _, _, _, focal_len, latitude, longitude, altitude = np.asarray(metadata.split('] ['))
     latitude = latitude.split('],[')[-1].split(' ')[-1]
     _, relalt, _, absalt = altitude.split(']')[0].split(' ')
     iso = iso.split(': ')[-1]
@@ -39,28 +53,27 @@ def clean_text(chunk):
     return frame_ann
 
 
-def load_metadata(path):
+def load_metadata(p: str):
     metadata_dict = {}
-    file = open(path, "r").read()
-    chunks = np.asarray(file.split("\n\n"))
+    file = open(p, 'r').read()
+    chunks = np.asarray(file.split('\n\n'))
     for chunk in chunks:
         try:
             ann = clean_text(chunk)
             metadata_dict.update(ann)
-        except:
-            print("smt wrong with chunk")
-            print(chunk)
+        except ValueError:
+            pass
     return metadata_dict
 
 
-def calc_displacement(metadata):
+def calc_displacement(md):
     # Rauscutten, wenn sich die Höhe länger nicht verändert
     pass
 
 
 if __name__ == '__main__':
-    filename = "Videos Test/DJI_0068.MP4"
-    metadata = "Videos Test/DJI_0068.SRT"
-    metadata_dict = load_metadata(metadata)
-    vid2frames(filename)
-    print("hi")
+    filenames = glob(f'{path}/*.MP4')
+    for f in filenames[:1]:
+        print(f'Extracting frames from {f}')
+        metadata = load_metadata(f.replace('.MP4', '.SRT'))
+        video2frames(f)
