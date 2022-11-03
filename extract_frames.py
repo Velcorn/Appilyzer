@@ -18,14 +18,31 @@ def video2frames(p: str):
 
     # Save every x-th frame
     x = 20
+    tiling = True
+    overlap = .25
     count = 0
     while cap.isOpened():
         success, frame = cap.read()
         if success:
             if count % x == 0:
-                print(f"Frame {count} extracted")
-                name = f'{folder}/{str(count).zfill(6)}.jpg'
-                cv2.imwrite(name, frame)
+                print(f"Extracting frame {count}...")
+                if tiling:
+                    # Split image into 4x4 tiles with an overlap of x %
+                    # Apply zero padding around the image according to the overlap
+                    h, w, _ = frame.shape
+                    tile_h = int(h / 4)
+                    tile_w = int(w / 4)
+                    overlap_h = int(tile_h * overlap)
+                    overlap_w = int(tile_w * overlap)
+                    frame = np.pad(frame, ((overlap_h, overlap_h), (overlap_w, overlap_w), (0, 0)), 'constant')
+                    for i in range(4):
+                        for j in range(4):
+                            tile = frame[i * tile_h:i * tile_h + tile_h + 2 * overlap_h,
+                                         j * tile_w:j * tile_w + tile_w + 2 * overlap_w, :]
+                            cv2.imwrite(f'{folder}/{str(count).zfill(6)}_{i}{j}.png', tile)
+                else:
+                    name = f'{folder}/{str(count).zfill(6)}.jpg'
+                    cv2.imwrite(name, frame)
             count += 1
         else:
             cap.release()
