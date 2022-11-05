@@ -2,11 +2,12 @@ import os
 import cv2
 import numpy as np
 from glob import glob
+from geopy.distance import distance
 
 path = "Videos Train"
 
 
-def video2frames(p: str):
+def video2frames(p: str, md: dict):
     # Create folder
     folder = f'{p.split("/")[0].replace(".MP4", "")}'
     os.makedirs(folder, exist_ok=True)
@@ -16,16 +17,32 @@ def video2frames(p: str):
     if not cap.isOpened():
         print("Error opening video file")
 
-    # Save every x-th frame
-    x = 20
+    # Threshold and previous lat, lon, alt
+    threshold = 0.5
+    prev = None
+    # Tiling and overlap
     tiling = True
     overlap = .25
-    count = 0
+    # Counter to keep track of frame number
+    count = 1
     while cap.isOpened():
         success, frame = cap.read()
         if success:
-            if count % x == 0:
+            # Calculate 3D displacement from current and previously saved frame
+            # Save frame when displacement greater than threshold
+            try:
+                lat, lon, alt = md[str(count)]['latitude'], md[str(count)]['longitude'], md[str(count)]['abs_alt']
+            except KeyError:
+                continue
+            if prev is None:
+                dist3d = threshold + 1
+                prev = (lat, lon, alt)
+            else:
+                dist2d = distance((lat, lon), (prev[:2])).m
+                dist3d = np.sqrt((alt - prev[2]) ** 2 + dist2d ** 2)
+            if dist3d > threshold:
                 print(f"Extracting frame {count}...")
+                prev = (lat, lon, alt)
                 if tiling:
                     # Split image into 4x4 tiles with an overlap of x %
                     # Apply zero padding around the image according to the overlap
@@ -60,10 +77,10 @@ def clean_text(chunk: str):
     fnum = fnum.split(': ')[-1]
 
     frame_ann[frameID] = {}
-    frame_ann[frameID]['latitide'] = float(latitude)
+    frame_ann[frameID]['latitude'] = float(latitude)
+    frame_ann[frameID]['longitude'] = float(longitude)
     frame_ann[frameID]['rel_alt'] = float(relalt)
     frame_ann[frameID]['abs_alt'] = float(absalt)
-    frame_ann[frameID]['longitude'] = float(longitude)
     frame_ann[frameID]['iso'] = int(iso)
     frame_ann[frameID]['focal_len'] = int(focal_len)
     frame_ann[frameID]['fnum'] = int(fnum)
@@ -90,7 +107,7 @@ def calc_displacement(md):
 
 if __name__ == '__main__':
     filenames = glob(f'{path}/*.MP4')
-    for f in filenames[:1]:
+    for f in filenames:
         print(f'Extracting frames from {f}')
         metadata = load_metadata(f.replace('.MP4', '.SRT'))
-        video2frames(f)
+        video2frames(f, metadata)
