@@ -44,7 +44,7 @@ def video2frames(p: str, md: dict):
                 print(f"Extracting frame {count}...")
                 prev = (lat, lon, alt)
                 if tiling:
-                    # Split image into 4x4 tiles with an overlap of x %
+                    # Split image into 4x4 tiles with overlap
                     # Apply zero padding around the image according to the overlap
                     h, w, _ = frame.shape
                     tile_h = int(h / 4)
