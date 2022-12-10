@@ -43,18 +43,20 @@ class AppylizerHealthDataset(VisionDataset):
 
         for unhealthy, directory in enumerate(data_dirs):
             current_dir = self.root + directory
+            print(current_dir)
             #print(current_dir)
             onlyfiles = [f for f in listdir(current_dir) if isfile(join(current_dir, f))]
+            print("Len only files: {0}".format(len(onlyfiles)))
             file_counter = 0
             for file_id, filename in enumerate(onlyfiles):
                 ##print(filename)
                 file_path = os.path.join(self.root, directory, filename)
                 if bool(unhealthy):
-                    entry = np.array(cv2.resize(cv2.imread(file_path), (256, 256)), dtype=np.uint8)
+                    entry = np.array(cv2.resize(cv2.imread(file_path), (100, 100)), dtype=np.uint8)
                 else:
                     entry = np.array(cv2.imread(file_path), dtype=np.uint8)
                 #entry = torchvision.datasets.mnist.read_image_file(file_path)
-                if not(bool(unhealthy)) and file_id % 7 == 0:
+                if not(bool(unhealthy)):
                     self.data.append(entry)
                     self.targets.append(unhealthy)
                     file_counter += 1
