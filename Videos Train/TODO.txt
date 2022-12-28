@@ -1,7 +1,0 @@
-In diesem Ordner müssen aus den Videos zunächst die brauchbaren Frames extrahiert werden, damit wir damit instance segmentation oder ggf. Obj detection machen können.
- 
-- Mit diesen Frames soll im Anschluss durch einen aktiven/online Lernansatz das auf dem MinneApple vortrainierte instance segmentation system auf unseren Bildern gefinetuned werden
-
-- Hier ist es auch nicht so wichtig das die extrahierten Bilder komplett disjunkt zueinander sind. Es sollte lediglich darauf geachtet werden, dass zwei Bilder genau gleich sind.
-
--Solltet ihr Frames finden auf denen gammligen Äpfel zusehen sind, packt diese in einen extra Ordner.  
